@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Comex;
+namespace Comex.Models;
 
 public class Produto
 {

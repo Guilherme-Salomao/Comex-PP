@@ -1,4 +1,5 @@
 ﻿using Comex;
+using Comex.Models;
 using System.Text.Json;
 
 var produtosParaTestes = new List<Produto>

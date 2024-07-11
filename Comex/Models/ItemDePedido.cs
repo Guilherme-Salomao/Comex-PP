@@ -1,4 +1,4 @@
-﻿namespace Comex;
+﻿namespace Comex.Models;
 public class ItemDePedido
 {
     public Produto Produto { get; private set; }
