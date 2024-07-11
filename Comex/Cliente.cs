@@ -1,16 +1,12 @@
-﻿namespace Comex;
-
-public class Cliente : IIdentificavel
+﻿namespace Comex
 {
-    public string Nome { get; set; }
-    public string CPF { get; set; }
-    public string Email { get; set; }
-    public string Profissao { get; set; }
-    public string Telefone { get; set; }
-    public Endereco Endereco { get; set; }
-
-    public string Identificar()
+    public class Cliente
     {
-        return $"Cliente: {Nome}, CPF: {CPF}";
+        public string Nome { get; private set; }
+
+        public Cliente(string nome)
+        {
+            Nome = nome ?? throw new ArgumentNullException(nameof(nome));
+        }
     }
 }

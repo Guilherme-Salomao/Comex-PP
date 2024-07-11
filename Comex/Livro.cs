@@ -6,11 +6,11 @@ public class Livro : Produto, IIdentificavel
     {
     }
 
-    public string Isbn { get; set; }
-    public int TotalDePaginas { get; set; }
+    public string ISBN { get; set; }
+    public int NumeroDePaginas { get; set; }
 
     public string Identificar()
     {
-        return $"Cliente: {Nome}, ISBN: {Isbn}";
+        return $"Livro: {Nome}, ISBN: {ISBN}";
     }
 }

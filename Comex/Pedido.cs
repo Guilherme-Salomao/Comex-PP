@@ -3,29 +3,28 @@
 public class Pedido
 {
     public Cliente Cliente { get; private set; }
-    public DateTime Data { get; private set; }
-    public List<ItemDePedido> Itens { get; private set; }
-
-    public double Total { get; set; }
-
+    public DateTime DataDoPedido { get; private set; }
+    public List<ItemDePedido> ItensDoPedido { get; private set; }
+    public double ValorTotal { get; private set; }
 
     public Pedido(Cliente cliente)
     {
-        Cliente = cliente;
-        Data = DateTime.Now;
-        Itens = new List<ItemDePedido>();
+        Cliente = cliente ?? throw new ArgumentNullException(nameof(cliente));
+        DataDoPedido = DateTime.Now;
+        ItensDoPedido = new List<ItemDePedido>();
     }
 
-    public void AdicionarItem(ItemDePedido item)
+    public void AdicionarItemAoPedido(ItemDePedido item)
     {
         if (item == null)
             throw new ArgumentNullException(nameof(item));
-        Itens.Add(item);
-        Total += item.Subtotal;
+
+        ItensDoPedido.Add(item);
+        ValorTotal += item.Subtotal;
     }
 
     public override string ToString()
     {
-        return $"Cliente: {Cliente.Nome}, Data: {Data}, Total: {Total:F2}";
+        return $"Cliente: {Cliente.Nome}, Data do Pedido: {DataDoPedido}, Valor Total: {ValorTotal:F2}";
     }
 }
