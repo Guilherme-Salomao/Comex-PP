@@ -1,8 +1,24 @@
-﻿using Comex;
-using Comex.Models;
+﻿// See https://aka.ms/new-console-template for more information
+using Comex.Data;
+using Comex.Menus;
+using Comex.Modelos;
 using System.Text.Json;
 
-var produtosParaTestes = new List<Produto>
+MenuCriarProduto menuCriarProduto = new MenuCriarProduto();
+MenuListarProdutos menuListarProdutos = new MenuListarProdutos();
+using HttpClient client = new HttpClient();
+MenuConsultarApiExterna menuConsultarApiExterna = new MenuConsultarApiExterna(client);
+MenuOrdenarProdutos ordenarProdutos = new MenuOrdenarProdutos();
+MenuCriarPedido menuCriarPedido = new MenuCriarPedido();
+MenuListarPedidos menuListarPedidos = new MenuListarPedidos();
+
+
+ProdutoDAL produtoDAL = new ProdutoDAL();
+
+ComexDbContext comexDbContext = new ComexDbContext();
+ProdutoRepository produtoRepository = new ProdutoRepository(comexDbContext);
+
+var listaDeProdutos = new List<Produto>
 {
     new Produto("Notebook")
     {
@@ -30,9 +46,9 @@ var produtosParaTestes = new List<Produto>
     }
 };
 
-var pedidosParaTestes = new List<Pedido>();
+var listaDePedidos = new List<Pedido>();
 
-string mensagemBoasVindas = "Boas vindas ao COMEX";
+string mensagemDeBoasVindas = "Boas vindas ao COMEX";
 
 void ExibirLogo()
 {
@@ -50,19 +66,19 @@ void ExibirLogo()
 ─██░░░░░░░░░░██─██░░░░░░░░░░██─██░░██──────────██░░██─██░░░░░░░░░░██─██░░░░██──██░░░░██─
 ─██████████████─██████████████─██████──────────██████─██████████████─████████──████████─
 ────────────────────────────────────────────────────────────────────────────────────────");
-    Console.WriteLine(mensagemBoasVindas);
+    Console.WriteLine(mensagemDeBoasVindas);
 }
 
-async Task ExibirOpcoesDoMenu()
+async Task ExibirOpcoesDeMenu()
 {
     ExibirLogo();
-    Console.WriteLine("\nDigite 1 para Criar Produto");
-    Console.WriteLine("Digite 2 para Listar Produtos");
-    Console.WriteLine("Digite 3 para Consultar API Externa");
-    Console.WriteLine("Digite 4 para Ordenar Produtos pelo Nome");
-    Console.WriteLine("Digite 5 para Ordenar Produtos pelo Preço");
-    Console.WriteLine("Digite 6 para Criar Pedido");
-    Console.WriteLine("Digite 7 para Listar Pedidos");
+    Console.WriteLine("\nDigite 1 Criar Produto");
+    Console.WriteLine("Digite 2 Listar Produtos");
+    Console.WriteLine("Digite 3 Consultar API Externa");
+    Console.WriteLine("Digite 4 Ordenar Produtos pelo Título");
+    Console.WriteLine("Digite 5 Ordenar Produtos pelo Preço");
+    Console.WriteLine("Digite 6 Criar Pedido");
+    Console.WriteLine("Digite 7 Listar Pedidos");
     Console.WriteLine("Digite -1 para sair");
 
     Console.Write("\nDigite a sua opção: ");
@@ -72,169 +88,46 @@ async Task ExibirOpcoesDoMenu()
     switch (opcaoEscolhidaNumerica)
     {
         case 1:
-            Console.Clear();
-            Console.WriteLine("Registro de Produto");
-
-            Console.Write("Digite o nome do Produto: ");
-            string nomeDoProduto = Console.ReadLine();
-            var produto = new Produto(nomeDoProduto);
-
-            Console.Write("Digite a descrição do Produto: ");
-            string descricaoDoProduto = Console.ReadLine();
-            produto.Descricao = descricaoDoProduto;
-
-            Console.Write("Digite o preço do Produto: ");
-            string precoDoProduto = Console.ReadLine();
-            produto.PrecoUnitario = double.Parse(precoDoProduto);
-
-            Console.Write("Digite a quantidade do Produto: ");
-            string quantidadeDoProduto = Console.ReadLine();
-            produto.Quantidade = int.Parse(quantidadeDoProduto);
-
-            produtosParaTestes.Add(produto);
-            Console.WriteLine($"O Produto {produto.Nome} foi registrado com sucesso!");
-            Console.WriteLine("\nDigite uma tecla para voltar ao menu principal");
-            Console.ReadKey();
-            Console.Clear();
-            await ExibirOpcoesDoMenu();
+            menuCriarProduto.CriarProduto(produtoRepository);
+            await ExibirOpcoesDeMenu();
             break;
         case 2:
-            Console.Clear();
-            Console.WriteLine("Exibindo todos os produtos registrados na nossa aplicação");
-
-            for (int i = 0; i < produtosParaTestes.Count; i++)
-            {
-                Console.WriteLine($"Produto: {produtosParaTestes[i].Nome}, Preço: {produtosParaTestes[i].PrecoUnitario:F2}");
-            }
-
-            Console.WriteLine("\nDigite uma tecla para voltar ao menu principal");
-            Console.ReadKey();
-            Console.Clear();
-            await ExibirOpcoesDoMenu();
+            menuListarProdutos.ListarProdutos(produtoRepository);
+            await ExibirOpcoesDeMenu();
             break;
         case 3:
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    Console.Clear();
-                    Console.WriteLine("\nExibindo Produtos\n");
-                    string resposta = await client.GetStringAsync("http://diwserver.vps.webdock.cloud:8765/products/category/Accessories%20%26%20Supplies");
-
-                    var resultado = JsonSerializer.Deserialize<Produto[]>(resposta);
-
-                    foreach (var produtoDaApi in resultado)
-                    {
-                        Console.WriteLine($"Produto: {produtoDaApi.Nome}, Preço: {produtoDaApi.PrecoUnitario:F2}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ocorreu um erro ao consultar a API: {ex.Message}");
-                }
-            }
-
-            Console.WriteLine("\nDigite uma tecla para voltar ao menu principal");
-            Console.ReadKey();
-            Console.Clear();
-            await ExibirOpcoesDoMenu();
+            await menuConsultarApiExterna.ConsultarApiExterna();
+            await ExibirOpcoesDeMenu();
             break;
         case 4:
-            Console.Clear();
-            Console.WriteLine("Exibindo produtos ordenados pelo nome");
-
-            produtosParaTestes.Sort((p1, p2) => p1.Nome.CompareTo(p2.Nome));
-            for (int i = 0; i < produtosParaTestes.Count; i++)
-            {
-                Console.WriteLine($"Produto: {produtosParaTestes[i].Nome}, Preço: {produtosParaTestes[i].PrecoUnitario:F2}");
-            }
-
-            Console.WriteLine("\nDigite uma tecla para voltar ao menu principal");
-            Console.ReadKey();
-            Console.Clear();
-            await ExibirOpcoesDoMenu();
+            ordenarProdutos.OrdenarProdutosPeloTitulo(produtoRepository);
+            await ExibirOpcoesDeMenu();
             break;
         case 5:
-            Console.Clear();
-            Console.WriteLine("Exibindo produtos ordenados pelo preço");
-
-            produtosParaTestes.Sort((p1, p2) => p1.PrecoUnitario.CompareTo(p2.PrecoUnitario));
-            for (int i = 0; i < produtosParaTestes.Count; i++)
-            {
-                Console.WriteLine($"Produto: {produtosParaTestes[i].Nome}, Preço: {produtosParaTestes[i].PrecoUnitario:F2}");
-            }
-
-            Console.WriteLine("\nDigite uma tecla para voltar ao menu principal");
-            Console.ReadKey();
-            Console.Clear();
-            await ExibirOpcoesDoMenu();
+            ordenarProdutos.OrdernarProdutosPeloPreço(produtoRepository);
+            await ExibirOpcoesDeMenu();
             break;
         case 6:
-            Console.Clear();
-            Console.WriteLine("Criação de Pedido");
-
-            Console.Write("Digite o nome do Cliente: ");
-            string nomeDoCliente = Console.ReadLine();
-            var cliente = new Cliente(nomeDoCliente);
-
-            var pedido = new Pedido(cliente);
-            Console.WriteLine($"Pedido criado com sucesso para o cliente {pedido.Cliente.Nome}");
-
-            while (true)
-            {
-                Console.Write("Deseja adicionar um item ao pedido? (s/n): ");
-                string respostaAdicionarItem = Console.ReadLine();
-                if (respostaAdicionarItem.ToLower() != "s")
-                    break;
-
-                Console.Write("Digite o nome do Produto: ");
-                string nomeDoProdutoParaPedido = Console.ReadLine();
-                var produtoParaPedido = produtosParaTestes.Find(p => p.Nome == nomeDoProdutoParaPedido);
-
-                if (produtoParaPedido == null)
-                {
-                    Console.WriteLine("Produto não encontrado!");
-                    continue;
-                }
-
-                Console.Write("Digite a quantidade: ");
-                int quantidadeParaPedido = int.Parse(Console.ReadLine());
-
-                var itemDePedido = new ItemDePedido(produtoParaPedido, quantidadeParaPedido, produtoParaPedido.PrecoUnitario);
-                pedido.AdicionarItemAoPedido(itemDePedido);
-            }
-
-            pedidosParaTestes.Add(pedido);
-            Console.WriteLine($"O Pedido para o cliente {pedido.Cliente.Nome} foi registrado com sucesso!");
-            Console.WriteLine("\nDigite uma tecla para voltar ao menu principal");
-            Console.ReadKey();
-            Console.Clear();
-            await ExibirOpcoesDoMenu();
+            menuCriarPedido.CriarPedido(listaDeProdutos, listaDePedidos);
+            await ExibirOpcoesDeMenu();
             break;
         case 7:
-            Console.Clear();
-            Console.WriteLine("Exibindo todos os pedidos registrados na nossa aplicação");
-
-            for (int i = 0; i < pedidosParaTestes.Count; i++)
-            {
-                Console.WriteLine(pedidosParaTestes[i].ToString());
-            }
-
-            Console.WriteLine("\nDigite uma tecla para voltar ao menu principal");
-            Console.ReadKey();
-            Console.Clear();
-            await ExibirOpcoesDoMenu();
+            menuListarPedidos.ListarPedidos(listaDePedidos);
+            await ExibirOpcoesDeMenu();
             break;
         case -1:
-            Console.Clear();
-            Console.WriteLine("Saindo do sistema...");
+            Console.WriteLine("Tchau tchau :)");
             break;
         default:
-            Console.Clear();
-            Console.WriteLine("Opção inválida, tente novamente.");
-            await ExibirOpcoesDoMenu();
+            Console.WriteLine("Opção inválida");
             break;
     }
 }
 
-await ExibirOpcoesDoMenu();
+await ExibirOpcoesDeMenu();
+
+
+
+
+
+
